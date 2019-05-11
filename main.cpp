@@ -131,7 +131,7 @@ int factorial(double num) {
 
 double statement(bool c = false);
 
-class Variable {								// класс 
+class Variable {								// класс, описывающий переменные
 public:
 	string name;
 	double value;
@@ -193,7 +193,7 @@ double primary() {								// числа, скобки, унарные + и -, п
 		return -primary();
 	case '+':
 		return primary();
-	case 'a':
+	case name:
 		return get_value(t.name);
 	default:
 		break;
