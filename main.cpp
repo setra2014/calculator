@@ -6,31 +6,85 @@ using namespace std;
 
 const char number = '8';					// '8'  обозначает число
 const char quit = 'q';						// t.kind == quit означает, что t - лексема выхода
-const char print = ';';						// t.kind == print означает, что t - лексема печати
-const string prompt = "> "; 					// приглашение
+const char print = ';';						// // t.kind == print означает, что t - лексема печати
+const string prompt = "> "; 
 const string result = "= ";					// Используется для указания на то, что далее следует результат
-const char let = 'l';						
+const char let = 'l';
+const char name = 'a';
 const string declkey = "let";
-const char name = 'a';						// t.kind == number означает, что t - переменная
-const char cons = 'c';						// t.kind == what_const означает, что следующая объявленная переменная является константой
-const string what_const = "const";				
-const char help = 'h';						// t.kind == help означает, что t - лексема вызова справочной информации
+const char cons = 'c';
+const string what_const = "const";
+const char help = 'h';
+const char image = 'i';
 
 void error(string s) {
 	throw runtime_error(s);
 }
 
+class complex {
+private:
+	double re;
+	double im;
+public:
+	complex(double re = 0, double im = 0) { this->re = re; this->im = im; }
+	double get_re() { return this->re; }
+	double get_im() { return this->im; }
+	void set_re(double v) { re = v; }
+	void set_im(double v) { im = v; }
+	complex &operator+(complex value) {
+		this->re += value.re;
+		this->im += value.im;
+		return *this;
+	}
+	complex &operator-(complex value) {
+		this->re -= value.re;
+		this->im -= value.im;
+		return *this;
+	}
+	complex &operator*(complex value) {
+		double a = this->re * value.re - this->im * value.im;
+		this->im = this->im * value.re + this->re * value.im;
+		this->re = a;
+		return *this;
+	}
+	complex &operator/(complex value) {
+		if (value.re != 0 && value.im != 0) error("Операция деления на комплексное число не определена");
+		else if(value.re != 0) {
+			this->re /= value.re;
+			this->im /= value.re;
+			return *this;
+		}
+		else if (value.im != 0) {
+			double a = this->im / value.im;
+			this->im = -this->re / value.im;
+			this->re = a;
+			return *this;
+		}
+	}
+	complex &operator-() {
+		this->re *= -1;
+		this->im *= -1;
+		return *this;
+	}
+	friend ostream &operator<<(ostream &out, complex &v);
+};
+
+ostream &operator<<(ostream &out, complex &v) {
+	out << v.get_re() << ' ' << '+' << ' ' << 'i' << v.get_im();
+	return out;
+}
+
 class Token {
 public:
 	char kind;
-	double value;
+	complex value;
 	string name;
 	bool c;
 	Token() {}
 	
 	Token(char ch) : kind{ ch } {}
 
-	Token(char ch, double val) : kind{ ch }, value{ val } {}
+	Token(char ch, complex val) : kind{ ch }, value{ val } {}
 
 	Token(char ch, string name, bool c) : kind{ ch }, name{ name }, c { c } {}
 };
@@ -53,7 +107,6 @@ void Token_stream::putback(Token t) {
 }
 
 Token Token_stream::get() {
-// Чтение символов из cin и составление Token 							
 	if (full) {
 		full = false;
 		return buffer;
@@ -65,13 +118,14 @@ Token Token_stream::get() {
 	case print:
 	case quit:
 	case help:
+	case image:
 	case '(': case ')':
 	case '{': case '}':
 	case '+': case '-':
 	case '!':
 	case '*': case '/': case '%':
-	case '=':
-		return Token{ ch };						// Каждый символ представляет сам себя 
+	case '=': 
+		return Token{ ch };
 
 	case '.':								// Число с плавающей точкой может начинаться с точки
 	case 'О': case '1': case '2':
@@ -79,13 +133,14 @@ Token Token_stream::get() {
 	case '6': case '7': case '8':
 	case '9':
 	{
-		cin.putback(ch);						// Вернуть цифру во входной поток
-		double val;
-		cin >> val;							// Считать число с плавающей точкой
+		cin.putback(ch);					// Вернуть цифру во входной поток
+		double c;
+		cin >> c;							// Считать число с плавающей точкой
+		complex val(c, 0);
 		return Token{ number, val };
 	}
 	default:
-		if (isalpha(ch)) {						// Попытка распознать имя переменной или ключевое слово
+		if (isalpha(ch)) {
 			string s;
 			s += ch;
 			bool c = false;
@@ -119,55 +174,58 @@ void Token_stream::ignore(char c) {
 
 Token_stream ts;
 
-double expression();
+complex expression();
 
-int factorial(double num) {
-	int factorial = 1;
-	if (num == 0) return 1;
-	int x = (int)num;
-	for (int i = 1; i <= x; i++) factorial = factorial*i;
-	return factorial;
+int factorial(complex num) {
+	if (num.get_im() == 0) {
+		int factorial = 1;
+		if (num.get_re() == 0) return 1;
+		int x = (int)num.get_re();
+		for (int i = 1; i <= x; i++) factorial = factorial*i;
+		return factorial;
+	}
+	else error("Факториал комплексного числа неопределен");
 }
 
-double statement(bool c = false);
+complex statement(bool c = false);
 
-class Variable {								// класс, описывающий переменные
+class Variable {
 public:
 	string name;
-	double value;
+	complex value;
 	bool what_const = false;
-	Variable(string name, double val, bool c) { this->name = name; this->value = val; this->what_const = c; }
+	Variable(string name, complex val, bool c) { this->name = name; this->value = val; this->what_const = c; }
 };
 
 vector<Variable> var_table;
 
-double get_value(string s) {
+complex get_value(string s) {
 	for (const Variable &v : var_table)
 		if (v.name == s) return v.value;
 	error("get: неопределенная переменая " + s);
-	return 0;
 }
-void set_value(string s, double d, bool c) {
+
+void set_value(string s, complex d, bool c) {
 	for (Variable &v : var_table)
 		if (v.name == s) {
 			if (v.what_const) {
 				error("set: нельзя переопределять константу");
 			}
 			v.what_const = c;
-			v.value = d;
+			v.value = v.value + c;
 			cout << s << " = " << v.value << endl;
 			return;
 		}
 	error("set: неопределенная переменная" + s);
 }
 
-double primary() {								// числа, скобки, унарные + и -, переменные
+complex primary() {								// числа и скобки
 	Token t = ts.get();
 	switch (t.kind)
 	{
 	case '{':
 	{
-		double d = expression();
+		complex d = expression();
 		t = ts.get();
 		if (t.kind != '}') {
 			error("требуется '}'");
@@ -176,54 +234,55 @@ double primary() {								// числа, скобки, унарные + и -, п
 	}
 	case '(':
 	{
-		double d = expression();
+		complex d = expression();
 		t = ts.get();
 		if (t.kind != ')') {
 			error("требуется ')'");
 		}
 		return d;
 	}
+	case image:
+		t.value.set_im(primary().get_re());
+		return t.value;
 	case number:
 		char c;
-		cin >> c;
-		if (c == '!') return factorial(t.value);			 //вычисление факториала
+		cin >> c; 
+		if (c == '!') return factorial(t.value);
 		cin.putback(c);
 		return t.value;
 	case '-':
 		return -primary();
 	case '+':
 		return primary();
-	case name:
+	case 'a':
 		return get_value(t.name);
 	default:
 		break;
 	}
-	error("primary: неопознанное первичное выражение");
-	return 0;
 }
 
-double term() {									// *, /, %
-	double left = primary();
+complex term() {									// *, /, %
+	complex left = primary();
 	Token t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '*':
-			left *= primary();
+			left = left * primary();
 			t = ts.get();
 			break;
 		case '/':
 		{
-			double d = primary();
-			if (d == 0) error("Деление на нуль");
-			left /= d;
+			complex d = primary();
+			if (d.get_re() == 0 && d.get_im() == 0) error("Деление на нуль");
+			left = left / d;
 			t = ts.get();
 			break;
 		}
 		case '%':
 		{
-			double d = primary();
-			if (d == 0) error("%: деление на нуль");
-			left = left - d*(int)(left/d);
+			complex d = primary();
+			if (d.get_im() !=0 && d.get_re() == 0 && left.get_im() != 0 && left.get_re() == 0) error("%: деление на нуль или комплексное число");
+			left.set_re(fmod(left.get_re(), d.get_re()));
 			t = ts.get();
 			break;
 		}
@@ -233,18 +292,18 @@ double term() {									// *, /, %
 		}
 	}
 }
- 
-double expression() {							      // + или -
-	double left = term();
+
+complex expression() {							// + или -
+	complex left = term();
 	Token t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '+':
-			left += term();
+			left = left + term();
 			t = ts.get();
 			break;
 		case '-':
-			left -= term();
+			left = left - term();
 			t = ts.get();
 			break;
 		default:
@@ -255,12 +314,12 @@ double expression() {							      // + или -
 }
 
 
-bool is_declared(string var) {							// проверяет, существует ли переменная или нет
+bool is_declared(string var) {
 	for (const Variable &v : var_table)
 		if (v.name == var) return true;
 	return false;
 }
-double define_name(string var, double val, bool c = false) {			// добавление новой переменной в вектор
+complex define_name(string var, complex val, bool c = false) {
 	if (is_declared(var)) {
 		set_value(var, val, c);
 	}
@@ -268,7 +327,7 @@ double define_name(string var, double val, bool c = false) {			// добавле
 	return val;
 }
 
-double declaration(bool c = false) {
+complex declaration(bool c = false) {
 	Token t = ts.get();
 	if (t.kind != name) error("в объявлении ожидается имя переменной");
 	string var_name = t.name;
@@ -276,12 +335,12 @@ double declaration(bool c = false) {
 	Token t2 = ts.get();
 	if (t2.kind != '=') error("пропущен символ = в объявлении " + var_name);
 
-	double d = expression();
+	complex d = expression();
 	define_name(var_name, d, c);
 	return d;
 }
 
-double statement(bool c) {
+complex statement(bool c) {
 	Token t = ts.get();
 	switch (t.kind) {
 	case let:
@@ -296,7 +355,7 @@ double statement(bool c) {
 		{
 		case '=':
 		{
-			double x = statement();
+			complex x = statement();
 			define_name(t.name, x, t.c);
 			return x;
 		}
@@ -317,7 +376,7 @@ void clean_up_mess() {
 	ts.ignore(print);
 }
 
-void calculate() {							// цикл вычисления выражения
+void calculate() {
 	while (cin) 
 	try {
 		cout << prompt;
