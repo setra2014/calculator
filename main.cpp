@@ -66,10 +66,10 @@ public:
 		this->im *= -1;
 		return *this;
 	}
-	friend ostream &operator<<(ostream &out, complex &v);
+	friend std::ostream &operator<<(std::ostream &out, complex v);
 };
 
-ostream &operator<<(ostream &out, complex &v) {
+std::ostream &operator<<(std::ostream &out, complex v) {
 	out << v.get_re() << ' ' << '+' << ' ' << 'i' << v.get_im();
 	return out;
 }
