@@ -13,8 +13,8 @@ using namespace std;
 using namespace ConstName;
 
 Token_stream ts;
-
 vector<Variable> var_table;
+
 void error(string s) {
 	throw runtime_error(s);
 }
@@ -28,13 +28,13 @@ int factorial(double num) {
 
 }
 
-complex <double> get_value(string s) {
+complex <double> get_value(string s) {							//возвращает значение переменной
 	for (const Variable &v : var_table)
 		if (v.name == s) return v.value;
 	error("get: неопределенная переменая " + s);
 }
 
-void set_value(string s, complex <double> d, bool c) {
+void set_value(string s, complex <double> d, bool c) {					//создает переменную
 	for (Variable &v : var_table)
 		if (v.name == s) {
 			if (v.what_const) {
@@ -48,7 +48,7 @@ void set_value(string s, complex <double> d, bool c) {
 	error("set: неопределенная переменная" + s);
 }
 
-complex <double> primary() {								// числа и скобки
+complex <double> primary() {								// числа, скобки, переменные, унарные операторы
 	Token t = ts.get();
 	switch (t.kind)
 	{
@@ -76,15 +76,9 @@ complex <double> primary() {								// числа и скобки
 		complex <double> NewT(re, im);
 		return NewT;
 	}
-	case number:
-		char c;
-		cin >> c;
-		if (c == '!') {
-			if (t.value.imag() == 0) return factorial(t.value.real());
-			else error("Факториал комплексного числа неопределен");
-		}
-		cin.putback(c);
+	case number: {
 		return t.value;
+	}
 	case '-':
 		return -primary();
 	case '+':
@@ -128,7 +122,7 @@ complex <double> term() {									// *, /, %
 	}
 }
 
-complex <double> expression() {							// + или -
+complex <double> expression() {									// +, -, !
 	complex <double> left = term();
 	Token t = ts.get();
 	while (true) {
@@ -141,6 +135,12 @@ complex <double> expression() {							// + или -
 			left = left - term();
 			t = ts.get();
 			break;
+		case '!': {
+			if (left.imag() == 0) return factorial(left.real());
+			else {
+				error("Факториал комплексного числа неопределен");
+			}
+		}
 		default:
 			ts.putback(t);
 			return left;
@@ -149,12 +149,12 @@ complex <double> expression() {							// + или -
 }
 
 
-bool is_declared(string var) {
+bool is_declared(string var) {								//проверка существования переменной
 	for (const Variable &v : var_table)
 		if (v.name == var) return true;
 	return false;
 }
-complex <double> define_name(string var, complex <double> val, bool c) {
+complex <double> define_name(string var, complex <double> val, bool c) {		//создание переменной
 	if (is_declared(var)) {
 		set_value(var, val, c);
 	}
@@ -175,7 +175,7 @@ complex <double> declaration(bool c) {
 	return d;
 }
 
-complex <double> statement(bool c) {
+complex <double> statement(bool c) {							//ключевые слова
 	Token t = ts.get();
 	switch (t.kind) {
 	case let:
