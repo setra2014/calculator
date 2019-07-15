@@ -10,9 +10,7 @@
 
 using namespace std;
 using namespace ConstName;
-void error(string s) {
-	throw runtime_error(s);
-}
+
 
 complex<double> get_value(string s, vector<Variable<complex<double>>> &var_table) {							//возвращает значение переменной
 	for (const Variable <complex<double>> &v : var_table)
@@ -46,7 +44,7 @@ template <> complex<double> expression(Token_stream <complex<double>> &ts, vecto
 template <> complex<int> expression(Token_stream <complex<int>> &ts, vector<Variable<complex<double>>> &var_table);
 
 template <typename T> T primary(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table) {								// числа, скобки, переменные, унарные операторы
-	Token <T> t = ts.get<T>();
+	Token <T> t = ts.get();
 	switch (t.kind)
 	{
 	case '{':
@@ -321,7 +319,7 @@ template <> complex<double> expression(Token_stream <complex<double>> &ts, vecto
 }
 
 template <typename T> void clean_up_mess(Token_stream <T> &ts) {
-	ts.ignore<T>(print);
+	ts.ignore(print);
 }
 
 bool is_declared(string var, vector<Variable<complex<double>>> var_table) {								//проверка существования переменной
@@ -460,7 +458,7 @@ void calculate() {
 		if (t.kind == quit) return;
 		if (t.kind == image) cin.putback(t.kind);
 		if(t.kind == name) cin.putback(t.name[0]);
-		
+
 		switch (analysis())
 		{
 		case 0:
@@ -484,16 +482,10 @@ void calculate() {
 		{
 			Token_stream <int> tsint;
 			Token <int> ti(t.kind, (int)t.value);
-			complex<int> dd(0, 0);
+			complex<int> dd((int)t.value, 0);
 			if (t.kind == image) { 
 				int im = primary<int>(tsint, var_table); 
 				complex<int> dr(0, im); 
-				dd = dr; 
-			}
-			else {
-				tsint.putback(ti); 
-				int re = primary<int>(tsint, var_table); 
-				complex<int> dr(re, 0); 
 				dd = dr; 
 			}
 
@@ -506,16 +498,16 @@ void calculate() {
 		}
 		case 3:
 		{
-			complex<double> dd(0,0);
-			if (t.kind == image) { 
-				double im = primary<double>(ts, var_table);
-				complex<double> dr(0, im);
-				dd = dr; 
-			}
-
 			Token_stream <complex<double>> tscd;
-			Token <complex<double>> td = tscd.get<complex<double>>();
-			tscd.putback(td);
+			if (!isalpha(t.kind)) {
+				complex<double> d(t.value);
+				Token<complex<double>>td(t.kind, d);
+				tscd.putback(td);
+			}
+			complex<double> dd(0, 0);
+
+			Token<complex<double>> td1 = tscd.get<complex<double>>();
+			tscd.putback(td1);
 			complex <double> cd = statement<complex<double>>(false, tscd, var_table);
 			cout << result << cd.real() << " + i(" << cd.imag() << ')' << endl;
 			break;
