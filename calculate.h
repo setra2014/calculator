@@ -4,13 +4,12 @@
 #include <vector>
 #include <complex>
 #include "constName.h"
-#include "Variable.h"
+#include "variable.h"
 #include "token_stream.h"
-#include "Token.h"
+#include "token.h"
 
 using namespace std;
 using namespace ConstName;
-
 
 complex<double> get_value(string s, vector<Variable<complex<double>>> &var_table) {							//возвращает значение переменной
 	for (const Variable <complex<double>> &v : var_table)
@@ -50,7 +49,7 @@ template <typename T> T primary(Token_stream <T> &ts, vector<Variable<complex<do
 	case '{':
 	{
 		T d = expression<T>(ts, var_table);
-		t = ts.get<T>();
+		t = ts.get();
 		if (t.kind != '}') {
 			error("требуется '}'");
 		}
@@ -59,7 +58,7 @@ template <typename T> T primary(Token_stream <T> &ts, vector<Variable<complex<do
 	case '(':
 	{
 		T d = expression<T>(ts, var_table);
-		t = ts.get<T>();
+		t = ts.get();
 		if (t.kind != ')') {
 			error("требуется ')'");
 		}
@@ -103,8 +102,8 @@ template <> complex<int> primary(Token_stream <complex<int>> &ts, vector<Variabl
 	}
 	case image: {
 		Token_stream <int> td;
-		double im = primary<int>(td, var_table);
-		double re = t.value.real();
+		int im = primary<int>(td, var_table);
+		int re = t.value.real();
 		complex <int> NewT(re, im);
 		return NewT;
 	}
@@ -163,19 +162,19 @@ template <> complex<double> primary(Token_stream <complex<double>> &ts, vector<V
 
 template <typename T> T term(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table) {									// *, /, %
 	T left = primary<T>(ts, var_table);
-	Token <T> t = ts.get<T>();
+	Token <T> t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '*':
 			left = left * primary<T>(ts, var_table);
-			t = ts.get<T>();
+			t = ts.get();
 			break;
 		case '/':
 		{
 			T d = primary<T>(ts, var_table);
 			if (d == 0) error("Деление на нуль");
 			left = left / d;
-			t = ts.get<T>();
+			t = ts.get();
 			break;
 		}
 		case '%':
@@ -183,7 +182,7 @@ template <typename T> T term(Token_stream <T> &ts, vector<Variable<complex<doubl
 			T d = primary<T>(ts, var_table);
 			if (d == 0) error("%: деление на нуль или комплексное число");
 			left = fmod(left, d);
-			t = ts.get<T>();
+			t = ts.get();
 			break;
 		}
 		default:
@@ -253,16 +252,16 @@ template <> complex<double> term(Token_stream <complex<double>> &ts, vector<Vari
 
 template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table) {									// +, -, !
 	T left = term<T>(ts, var_table);
-	Token <T> t = ts.get<T>();
+	Token <T> t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '+':
 			left = left + term<T>(ts, var_table);
-			t = ts.get<T>();
+			t = ts.get();
 			break;
 		case '-':
 			left = left - term<T>(ts, var_table);
-			t = ts.get<T>();
+			t = ts.get();
 			break;
 		case '!': {
 			return factorial(left);
@@ -351,7 +350,7 @@ complex<double> declaration(bool c, Token_stream <complex<double>> &ts, vector<V
 }
 
 template <typename T> T statement(bool c, Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table) {							//ключевые слова
-	Token <T> t = ts.get<T>();
+	Token <T> t = ts.get();
 	switch (t.kind) {
 	default:
 		ts.putback(t);
@@ -458,7 +457,7 @@ void calculate() {
 		if (t.kind == quit) return;
 		if (t.kind == image) cin.putback(t.kind);
 		if(t.kind == name) cin.putback(t.name[0]);
-
+		
 		switch (analysis())
 		{
 		case 0:
@@ -511,7 +510,7 @@ void calculate() {
 			complex <double> cd = statement<complex<double>>(false, tscd, var_table);
 			cout << result << cd.real() << " + i(" << cd.imag() << ')' << endl;
 			break;
-		}
+}
 		default:
 			break;
 		}
