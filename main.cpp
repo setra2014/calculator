@@ -14,12 +14,8 @@ using namespace ConstName;
 
 int main() {
 	setlocale(LC_ALL, "Russian");
-	double val = 0;
 	cout << "Добро пожаловать в программу 'калькулятор'! Введите 'h', чтобы вызвать справку" << endl;
 	try {
-		define_name("pi", 3.1415926535, true);
-		define_name("e", 2.7182818284, true);
-
 		calculate();
 		system("Pause");
 		return 0;
