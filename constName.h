@@ -15,4 +15,7 @@ namespace ConstName {
 	const string what_const = "const";
 	const char help = 'h';
 	const char image = 'i';
+	void error(string s) {
+		throw runtime_error(s);
+	}
 }
