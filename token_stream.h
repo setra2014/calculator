@@ -6,8 +6,8 @@
 #include <complex>
 #include "calculate.h"
 #include "constName.h"
-#include "Variable.h"
-#include "Token.h"
+#include "variable.h"
+#include "token.h"
 
 using namespace std;
 using namespace ConstName;
@@ -15,7 +15,7 @@ template <typename T>
 class Token_stream {
 public:
 	Token_stream() : full{ false } {}
-	template <typename T> Token <T> get() {
+	template <typename Type=T> Token<Type> get() {
 		if (full) {
 			full = false;
 			return buffer;
@@ -34,7 +34,7 @@ public:
 		case '!':
 		case '*': case '/': case '%':
 		case '=':
-			return Token<T>(ch);
+			return Token<Type>(ch);
 		case '.':
 		case 'О': case '1': case '2':
 		case '3': case '4': case '5':
@@ -42,9 +42,9 @@ public:
 		case '9':
 		{
 			cin.putback(ch);
-			T c;
+			Type c;
 			cin >> c;
-			return Token<T>(number, c);
+			return Token<Type>(number, c);
 		}
 		default: {
 			if (isalpha(ch)) {
@@ -55,11 +55,11 @@ public:
 				cin.putback(ch);
 				if (s == what_const) {
 					c = true;
-					return Token<T>{ cons };
+					return Token<Type>{ cons };
 				}
 				if (s == declkey)
-					return Token<T>{ let };
-				return Token<T>{ name, s, c };
+					return Token<Type>{ let };
+				return Token<Type>{ name, s, c };
 			}
 		}
 				 error("Неверная лексема");
@@ -67,12 +67,12 @@ public:
 		}
 	}
 
-	template <typename T> void putback(Token <T> t) {
+	template <typename Type> void putback(Token <Type> t) {
 		if (full) error("put back() : буфер заполнен");
 		buffer = t;
 		full = true;
 	}
-	template <typename T> void ignore(char c) {
+	void ignore(char c) {
 		if (full && c == buffer.kind) {
 			full = false;
 			return;
