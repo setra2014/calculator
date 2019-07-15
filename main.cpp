@@ -14,7 +14,7 @@ using namespace ConstName;
 
 int main() {
 	setlocale(LC_ALL, "Russian");
-	cout << "Добро пожаловать в программу 'калькулятор' с шаблонами! Введите 'h', чтобы вызвать справку" << endl;
+	cout << "Добро пожаловать в программу 'калькулятор'! Введите 'h', чтобы вызвать справку" << endl;
 	try {
 		calculate();
 		system("Pause");
