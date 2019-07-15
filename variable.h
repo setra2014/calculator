@@ -1,13 +1,17 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <vector>
 #include <complex>
-using namespace std;
+#include "constName.h"
 
-class Variable {
+using namespace std;
+using namespace ConstName;
+
+template <typename T> class Variable {
 public:
 	string name;
-	complex <double> value;
+	T value;
 	bool what_const = false;
-	Variable(string name, complex <double> val, bool c) { this->name = name; this->value = val; this->what_const = c; }
+	Variable(string name, T val, bool c) { this->name = name; this->value = val; this->what_const = c; }
 };
