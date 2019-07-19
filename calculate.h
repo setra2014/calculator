@@ -34,9 +34,9 @@ void set_value(string s, complex<double> d, bool c, vector<Variable<complex<doub
 int factorial(int num) {
 	int factorial = 1;
 	if (num == 0) return 1;
-	for (int i = 1; i <= num; i++) factorial = factorial*i;
+	int x = num;
+	for (int i = 1; i <= x; i++) factorial = factorial*i;
 	return factorial;
-
 }
 template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table);
 template <> complex<double> expression(Token_stream <complex<double>> &ts, vector<Variable<complex<double>>> &var_table);
@@ -75,6 +75,7 @@ template <typename T> T primary(Token_stream <T> &ts, vector<Variable<complex<do
 		break;
 	}
 }
+
 template <> complex<int> primary(Token_stream <complex<int>> &ts, vector<Variable<complex<double>>> &var_table) {								// числа, скобки, переменные, унарные операторы
 	Token <complex<int>> t = ts.get<complex<int>>();
 	switch (t.kind)
@@ -180,7 +181,7 @@ template <typename T> T term(Token_stream <T> &ts, vector<Variable<complex<doubl
 		case '%':
 		{
 			T d = primary<T>(ts, var_table);
-			if (d == 0) error("%: деление на нуль или комплексное число");
+			if (d == 0) error("%: деление на нуль");
 			left = fmod(left, d);
 			t = ts.get();
 			break;
@@ -275,6 +276,7 @@ template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex
 		}
 	}
 }
+
 template <> complex<int> expression(Token_stream <complex<int>> &ts, vector<Variable<complex<double>>> &var_table) {									// +, -, !
 	complex<int> left = term<complex<int>>(ts, var_table);
 	Token <complex<int>> t = ts.get<complex<int>>();
@@ -297,6 +299,7 @@ template <> complex<int> expression(Token_stream <complex<int>> &ts, vector<Vari
 		}
 	}
 }
+
 template <> complex<double> expression(Token_stream <complex<double>> &ts, vector<Variable<complex<double>>> &var_table) {									// +, -, !
 	complex<double> left = term<complex<double>>(ts, var_table);
 	Token <complex<double>> t = ts.get<complex<double>>();
@@ -452,8 +455,8 @@ void calculate() {
 		}
 		if (t.kind == quit) return;
 		if (t.kind == image) cin.putback(t.kind);
-		if(t.kind == name) cin.putback(t.name[0]);
-		
+		if (t.kind == name) cin.putback(t.name[0]);
+
 		switch (an)
 		{
 		case 0:
@@ -478,10 +481,10 @@ void calculate() {
 			Token_stream <int> tsint;
 			Token <int> ti(t.kind, (int)t.value);
 			complex<int> dd((int)t.value, 0);
-			if (t.kind == image) { 
-				int im = primary<int>(tsint, var_table); 
-				complex<int> dr(0, im); 
-				dd = dr; 
+			if (t.kind == image) {
+				int im = primary<int>(tsint, var_table);
+				complex<int> dr(0, im);
+				dd = dr;
 			}
 
 			Token_stream <complex<int>> tscd;
@@ -506,7 +509,7 @@ void calculate() {
 			complex <double> cd = statement<complex<double>>(false, tscd, var_table);
 			cout << result << cd.real() << " + i(" << cd.imag() << ')' << endl;
 			break;
-}
+		}
 		default:
 			break;
 		}
