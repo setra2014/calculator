@@ -266,7 +266,7 @@ template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex
 			break;
 		case '!': {
 			string type = typeid(left).name();
-			string t = "int";
+			string t = "i";
 			if(type == t) return factorial(left);
 			else error("Факториал неопределен");
 		}
