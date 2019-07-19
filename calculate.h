@@ -7,6 +7,7 @@
 #include "variable.h"
 #include "token_stream.h"
 #include "token.h"
+#include <typeinfo>
 
 using namespace std;
 using namespace ConstName;
@@ -30,11 +31,10 @@ void set_value(string s, complex<double> d, bool c, vector<Variable<complex<doub
 	error("set: неопределенная переменная" + s);
 }
 
-int factorial(double num) {
+int factorial(int num) {
 	int factorial = 1;
 	if (num == 0) return 1;
-	int x = (int)num;
-	for (int i = 1; i <= x; i++) factorial = factorial*i;
+	for (int i = 1; i <= num; i++) factorial = factorial*i;
 	return factorial;
 
 }
@@ -264,7 +264,10 @@ template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex
 			t = ts.get();
 			break;
 		case '!': {
-			return factorial(left);
+			string type = typeid(left).name();
+			string t = "int";
+			if(type == t) return factorial(left);
+			else error("Факториал неопределен");
 		}
 		default:
 			ts.putback(t);
@@ -357,14 +360,6 @@ template <typename T> T statement(bool c, Token_stream <T> &ts, vector<Variable<
 		return expression<T>(ts, var_table);
 	}
 }
-template <> complex<int> statement(bool c, Token_stream <complex<int>> &ts, vector<Variable<complex<double>>> &var_table) {							//ключевые слова
-	Token <complex<int>> t = ts.get<complex<int>>();
-	switch (t.kind) {
-	default:
-		ts.putback(t);
-		return expression<complex<int>>(ts, var_table);
-	}
-}
 template <> complex<double> statement(bool c, Token_stream <complex<double>> &ts, vector<Variable<complex<double>>> &var_table) {							//ключевые слова
 	Token <complex<double>> t = ts.get<complex<double>>();
 	switch (t.kind) {
@@ -443,6 +438,7 @@ void calculate() {
 	while (cin)
 		try {
 		cout << prompt;
+		int an = analysis();
 		Token <double> t = ts.get<double>();
 		while (t.kind == print) t = ts.get<double>();
 		if (t.kind == help) {
@@ -458,7 +454,7 @@ void calculate() {
 		if (t.kind == image) cin.putback(t.kind);
 		if(t.kind == name) cin.putback(t.name[0]);
 		
-		switch (analysis())
+		switch (an)
 		{
 		case 0:
 		{
