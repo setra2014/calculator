@@ -75,14 +75,14 @@ template <typename T> T primary(Token_stream <T> &ts, vector<Variable<complex<do
 	}
 }
 
-ttemplate <typename T> complex<T> primary(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool iscomplex) {								// числа, скобки, переменные, унарные операторы
-	Token <complex<T>> t = ts.get<complex<T>>();
+template <typename T> complex<T> primary(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool iscomplex) {								// числа, скобки, переменные, унарные операторы
+	Token <complex<T>> t = ts.get();
 	switch (t.kind)
 	{
 	case '{':
 	{
 		complex<T> d = expression<T>(ts, var_table, true);
-		t = ts.get<complex<T>>();
+		t = ts.get();
 		if (t.kind != '}') {
 			error("требуется '}'");
 		}
@@ -91,7 +91,7 @@ ttemplate <typename T> complex<T> primary(Token_stream <complex<T>> &ts, vector<
 	case '(':
 	{
 		complex<T> d = expression<T>(ts, var_table, true);
-		t = ts.get<complex<T>>();
+		t = ts.get();
 		if (t.kind != ')') {
 			error("требуется ')'");
 		}
@@ -152,19 +152,19 @@ template <typename T> T term(Token_stream <T> &ts, vector<Variable<complex<doubl
 
 template <typename T> complex<T> term(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool) {									// *, /, %
 	complex<T> left = primary<T>(ts, var_table, true);
-	Token <complex<T>> t = ts.get<complex<T>>();
+	Token <complex<T>> t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '*':
 			left = left * primary<T>(ts, var_table, true);
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		case '/':
 		{
 			complex<T> d = primary<T>(ts, var_table, true);
 			if (d.real() == 0 && d.imag() == 0) error("Деление на нуль");
 			left = left / d;
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		}
 		case '%':
@@ -207,16 +207,16 @@ template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex
 
 template <typename T> complex<T> expression(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool) {									// +, -, !
 	complex<T> left = term<T>(ts, var_table, true);
-	Token <complex<T>> t = ts.get<complex<T>>();
+	Token <complex<T>> t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '+':
 			left = left + term<T>(ts, var_table, true);
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		case '-':
 			left = left - term<T>(ts, var_table, true);
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		case '!': {
 			error("Факториал комплексного числа неопределен!");
