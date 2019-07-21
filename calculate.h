@@ -39,8 +39,6 @@ int factorial(int num) {
 	return factorial;
 }
 template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table);
-//template <> complex<double> expression(Token_stream <complex<double>> &ts, vector<Variable<complex<double>>> &var_table);
-//template <> complex<int> expression(Token_stream <complex<int>> &ts, vector<Variable<complex<double>>> &var_table);
 template <typename T> complex<T> expression(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool iscomplex);
 
 template <typename T> T primary(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table) {								// числа, скобки, переменные, унарные операторы
@@ -196,19 +194,19 @@ template <typename T> T term(Token_stream <T> &ts, vector<Variable<complex<doubl
 
 template <typename T> complex<T> term(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool iscomplex) {									// *, /, %
 	complex<T> left = primary<complex<T>>(ts, var_table);
-	Token <complex<T>> t = ts.get<complex<T>>();
+	Token <complex<T>> t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '*':
 			left = left * primary<complex<T>>(ts, var_table);
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		case '/':
 		{
 			complex<T> d = primary<complex<T>>(ts, var_table);
 			if (d.real() == 0 && d.imag() == 0) error("Деление на нуль");
 			left = left / d;
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		}
 		case '%':
@@ -222,35 +220,6 @@ template <typename T> complex<T> term(Token_stream <complex<T>> &ts, vector<Vari
 		}
 	}
 }
-
-/*template <> complex<double> term(Token_stream <complex<double>> &ts, vector<Variable<complex<double>>> &var_table) {									// *, /, %
-	complex<double> left = primary<complex<double>>(ts, var_table);
-	Token <complex<double>> t = ts.get<complex<double>>();
-	while (true) {
-		switch (t.kind) {
-		case '*':
-			left = left * primary<complex<double>>(ts, var_table);
-			t = ts.get<complex<double>>();
-			break;
-		case '/':
-		{
-			complex<double> d = primary<complex<double>>(ts, var_table);
-			if (d.real() == 0 && d.imag() == 0) error("Деление на нуль");
-			left = left / d;
-			t = ts.get<complex<double>>();
-			break;
-		}
-		case '%':
-		{
-			error("Остаток от деления на комплексное число не определен");
-			break;
-		}
-		default:
-			ts.putback(t);
-			return left;
-		}
-	}
-}*/
 
 template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex<double>>> &var_table) {									// +, -, !
 	T left = term<T>(ts, var_table);
@@ -267,7 +236,7 @@ template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex
 			break;
 		case '!': {
 			string type = typeid(left).name();
-			string t = "int";
+			string t = "i";
 			if(type == t) return factorial(left);
 			else error("Факториал неопределен");
 		}
@@ -280,16 +249,16 @@ template <typename T> T expression(Token_stream <T> &ts, vector<Variable<complex
 
 template <typename T> complex<T> expression(Token_stream <complex<T>> &ts, vector<Variable<complex<double>>> &var_table, bool iscomplex) {									// +, -, !
 	complex<T> left = term<T>(ts, var_table, true);
-	Token <complex<T>> t = ts.get<complex<T>>();
+	Token <complex<T>> t = ts.get();
 	while (true) {
 		switch (t.kind) {
 		case '+':
 			left = left + term<T>(ts, var_table, true);
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		case '-':
 			left = left - term<T>(ts, var_table, true);
-			t = ts.get<complex<T>>();
+			t = ts.get();
 			break;
 		case '!': {
 			error("Факториал комплексного числа неопределен!");
@@ -300,29 +269,6 @@ template <typename T> complex<T> expression(Token_stream <complex<T>> &ts, vecto
 		}
 	}
 }
-
-/*template <> complex<double> expression(Token_stream <complex<double>> &ts, vector<Variable<complex<double>>> &var_table) {									// +, -, !
-	complex<double> left = term<double>(ts, var_table, true);
-	Token <complex<double>> t = ts.get<complex<double>>();
-	while (true) {
-		switch (t.kind) {
-		case '+':
-			left = left + term<double>(ts, var_table, true);
-			t = ts.get<complex<double>>();
-			break;
-		case '-':
-			left = left - term<double>(ts, var_table, true);
-			t = ts.get<complex<double>>();
-			break;
-		case '!': {
-			error("Факториал комплексного числа неопределен!");
-		}
-		default:
-			ts.putback(t);
-			return left;
-		}
-	}
-}*/
 
 template <typename T> void clean_up_mess(Token_stream <T> &ts) {
 	ts.ignore(print);
